@@ -1,0 +1,36 @@
+# yaml file for running eDNNs
+
+# the name of your model
+name: 'eDNN'
+
+# the number of epochs to run
+n_epoch: 10
+
+# batch size of images
+batch_size: 10
+
+# learning rate for model
+learning_rate: 0.001
+
+# number of GPUs to use
+n_gpu: 1
+
+# number of threads to use for data queuing
+n_threads: auto
+
+# labels on the hdf5 datasets
+x_label: 'images'
+y_label: 'labels'
+
+# value of validation size (from 0 to 1)
+validation_size: 0.1
+
+# new feature! multi-scale DNN! tiles are not defined here
+multi-scale: true
+# type of channels: only support for default and fft for now...
+branches:
+  - {type: default, focus: [128, 128], context: [32, 32], padding: wrap} 
+#  - {type: pooled, size: [8,8], focus: [1, 1], context: [1, 1], padding: wrap}
+#  - {type: fftr, focus: [16, 16], context: [16, 16], padding: wrap} # real part
+#  - {type: ffti, focus: [16, 16], context: [16, 16], padding: wrap} # imaginary part
+

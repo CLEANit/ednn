@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+from trainer import Trainer
+from loader import Loader
+import coloredlogs, logging
+import argparse
+import os
+import yaml
+import imp
+ 
+def parseArgs():
+    parser = argparse.ArgumentParser(description='Regression using Tensorflow. Change deepNN to modify the neural network.')
+    parser.add_argument('--train', help='Start training with data stored in "train" directory.', action='store_true', dest='train')
+    parser.add_argument('--test', help='Start testing with data stored in "test" directory.', action='store_true', dest='test')
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    logger = logging.getLogger('eDNN')
+    coloredlogs.install(level='DEBUG', fmt='%(asctime)s %(hostname)s %(name)s [%(process)d] %(levelname)s %(message)s', logger=logger)
+
+    if not os.path.isfile('./deepNN.py'):
+        logger.error('Could not find a deep neural network in your working directory.')
+        exit(-1)
+
+    if not os.path.isfile('./input.yaml'):
+        logger.error('Could not find "input.yaml". Please make sure this is in your working directory.')
+        exit(-1)
+
+    config = yaml.load(open('input.yaml'))
+    deepNN = imp.load_source('deepNN', './deepNN.py')
+
+
+    parser = parseArgs()
+    loader = Loader(logger, parser, config)
+    
+    if parser.train:
+        t = Trainer(logger, loader, deepNN.deepNN, deepNN.lossFunction, config)
+        # logger.info('Estimated GPU memory usage: %2.2f GB' % (t.getEstimatedMem() / 1.0e9))
+        logger.info('Total number of training examples: %i' % loader.getTotalImages())
+        logger.info('Total number of validation examples: %i' % loader.getTotalValidationImages())
+        logger.info('Number of batches per epoch: %i' % (loader.getTotalImages() / t.getBatchSize()) )
+        t.train()
+    elif parser.test:
+        t = Trainer(logger, loader, deepNN.deepNN, deepNN.lossFunction, config, test=True)
+        t.predict()
